@@ -325,10 +325,10 @@ class AwsSqsQueue implements ReliableQueueInterface {
    * As per discussion here: https://drupal.org/node/1956190).
    *
    * @param string $data
-   *   Data to unserialize.
+   *   Data to un-serialize.
    *
    * @return mixed
-   *   Return unserialize data.
+   *   Return un-serialize data.
    *
    * @todo: Depend on the Drupal serialization module for this.
    */
