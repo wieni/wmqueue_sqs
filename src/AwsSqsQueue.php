@@ -95,7 +95,7 @@ class AwsSqsQueue implements ReliableQueueInterface {
    * Invokes SqsClient::sendMessage().
    *  http://docs.aws.amazon.com/aws-sdk-php-2/latest/class-Aws.Sqs.SqsClient.html#_sendMessage
    *
-   * @param array|string $data
+   * @param array|string|object $data
    *   Caller should be sending data in array.
    * @param bool $serialize
    *   (bool) Whether to serialize the data before sending, true by default.
