@@ -1,27 +1,10 @@
-AWS Simple Queue Service (7.x-1.x)
-===================================
+# Ap Newsroom
 
-This module uses AWS SQS as a backend for Drupal's queue system. You can use AWS SQS as a full replacement for your Drupal queues, or use it for certain queues.
+## INTRODUCTION
+AWS simple queue services defines a Queue Interface for Amazon SQS
 
-Dependencies
--------------
-
-  - composer_manager (module)
-  - composer (drush extension)
-
-
-Installation & Set-up
-----------------------
-
-  1. Download and install required projects.
-
-        drush dl aws_sqs composer_manager composer
-        drush en composer_manager
-        drush en aws_sqs
-        drush composer-rebuild-file
-        drush composer-execute update
-
-  2. Set up your Amazon account and sign up for SQS.
+## REQUIREMENTS
+Set up your Amazon account and sign up for SQS.
 
         Instructions here:
         http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/GettingSetUp.html
@@ -33,21 +16,40 @@ Installation & Set-up
         You may also be interested in documentation on AWS SDK for PHP:
         http://docs.aws.amazon.com/aws-sdk-php-2/guide/latest/index.html
 
-  3. Enter your AWS credentials.
+## INSTALLATION
+Install module as usual.
+https://www.drupal.org/docs/8/extending-drupal-8/installing-drupal-8-modules
 
-        - Go here: admin/config/system/aws-queue
+## CONFIGURATION
+Enter your AWS credentials.
+
+        - Go here: /admin/config/system/aws-queue
         - Enter your creds
-        - Set AwsSqsQueue as your default queue. If you don't want SQS to be your
-          backend by default, leave it set to SystemQueue and instantiate SQS
-          queues manually with AwsSqsQueue::get().
 
-  4. (Optional) Test drive with example_queue module.
+## EXAMPLE CODE
+    $example_queue = Drupal::service("queue.awssqs")->get("example_queue");
+    
+    // Get some data
+    $item = array('test', '1', '2', '3');
+    
+    // Add the data to the queue
+    $example_queue->createItem($item);
+    
+    // Fetch the item from the queue
+    $item = $example_queue->claimItem();
 
-        drush dl examples
-        drush en queue_example
-        
-        - Go here: queue_example/insert_remove
-        - Add some items to a queue.
-        - Toggle over to your AWS Console and watch your queued items appear.
-        - Try removing, claiming, releasing, and deleting items from the queue.
-          Watch how these changes are all reflected in the AWS Console.
+## REPLACE AWS SQS AS DEFAULT QUEUE FOR DRUPAL
+The following values can be set in your settings.php file's 
+$settings array to define which services are used for queues
+
+ - queue_reliable_service_$name: 
+    The container service to use for the reliable queue $name.
+ - queue_service_$name: 
+    The container service to use for the queue $name.
+ - queue_default: 
+    The container service to use by default for queues without overrides. 
+    This defaults to 'queue.database'.
+    
+    Example :- 
+    Add following code in settings.php.
+    $settings['queue_default'] = 'aws_sqs.queue_factory'

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aws_sqs\Queue;
+namespace Drupal\aws_sqs;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -44,7 +44,7 @@ class AwsSqsQueueFactory {
    * @param string $name
    *   The name of the SQS queue to use.
    *
-   * @return \Drupal\aws_sqs\Queue\AwsSqsQueue
+   * @return \Drupal\aws_sqs\AwsSqsQueue
    *   Return AwsSqsQueue service.
    */
   public function get($name) {

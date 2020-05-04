@@ -5,63 +5,19 @@
  * AWS SQS module functions.
  */
 
-/**
- * Implements hook_menu().
- */
-function aws_sqs_menu() {
-  $items['admin/config/system/aws-queue'] = array(
-    'route_name' => 'aws_sqs.settings',
-    'title' => 'Amazon SQS Settings',
-    'description' => 'Configure your Amazon SQS Settings.',
-  );
-
-  return $items;
-}
-
+use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
- * Implements hook_queue_info().
- *
- * This hook is used by queue_ui (and other modules)
- * to discover non SystemQueue based queues.
+ * Implements hook_help().
  */
-function aws_sqs_queue_info() {
-  // Import variables from settings.php
-  global $conf;
+function aws_sqs_help($route_name, RouteMatchInterface $route_match) {
+  $output = '';
+  switch ($route_name) {
+    // Main module help for the paragraphs module.
+    case 'help.page.aws_sqs':
+      $output = t('Amazon Simple Queue System define easy interface for AWS SQS.');
 
-  $queues = array();
-
-  $blacklist = array(
-    'aws_sqs_default_queue',
-    'aws_sqs_aws_key',
-    'aws_sqs_aws_secret',
-    'aws_sqs_region',
-    'aws_sqs_waittimeseconds',
-    'aws_sqs_enable',
-  );
-
-  foreach(variable_initialize($conf) as $key => $value) {
-    if (substr($key, 0, 7) == 'aws_sqs' && !in_array($key, $blacklist)) {
-      $name = substr($key, 8);
-      $queues[$name] = array('title' => str_replace('_', ' ', $name));
-    }
+      break;
   }
-
-  return $queues;
+  return $output;
 }
-
-
-/*function aws_sqs_test() {
-  // initialize the queue
-  $queue = Drupal::queue('update_fetch_tasks');
-  // Create the queue
-  $queue->createQueue();
-  // Get some data
-  $item = array('test', '1', '2', '3');
-  // Add the data to the queue
-  $queue->createItem($item);
-  // Fetch the item from the queue
-  $item = $queue->claimItem();
-  $queue->deleteItem($item);
-  //drush_print_r($item);
-}*/

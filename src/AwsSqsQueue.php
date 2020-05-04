@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aws_sqs\Queue;
+namespace Drupal\aws_sqs;
 
 use Aws\AwsClientInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
@@ -91,30 +91,21 @@ class AwsSqsQueue implements ReliableQueueInterface {
    *   Caller should be sending serialized data. If an item retreived from the
    *   queueis being re-submitted to the queue (if is_object($item)
    *   && $item->data && item->item_id), only $item->data will be stored.
+   * @param bool $serialize
+   *   (bool) Whether to serialize the data before sending, true by default.
    *
-   * @return bool
+   * @return string|bool
    *   Return true is item created otherwise false.
    */
-  public function createItem($data) {
-
-    // Check to see if someone is trying to save an item originally retrieved
-    // from the queue. If so, this really should have been submitted as
-    // $item->data, not $item. Reformat this so we don't save metadata or
-    // confuse item_ids downstream.
-    if (is_object($data) && property_exists($data, 'data') && property_exists($data, 'item_id')) {
-      $text = $this->t('Do not re-queue whole items retrieved from the SQS queue. This included metadata, like the item_id. Pass $item->data to createItem() as a parameter, rather than passing the entire $item. $item->data is being saved. The rest is being ignored.');
-      $data = $data->data;
-      $this->logger->error($text);
-    }
-
-    // @todo Add a check here for message size? Log it?
-    // Create a new message object.
+  public function createItem($data, $serialize = TRUE) {
+    // @todo Check if data size limit is 64kb (Validate, link to documentation).
+    /** @var \Guzzle\Service\Resource\Model $result */
     $result = $this->client->sendMessage([
-      'QueueUrl'    => $this->queueUrl,
-      'MessageBody' => $data,
+      'QueueUrl' => $this->getQueueUrl(),
+      'MessageBody' => $serialize ? $this->serialize($data) : $data,
     ]);
 
-    return (bool) $result;
+    return $result->get('MessageId') ?? FALSE;
   }
 
   /**
@@ -142,7 +133,7 @@ class AwsSqsQueue implements ReliableQueueInterface {
       $return = $attributes['ApproximateNumberOfMessages'];
     }
     else {
-      $return = FALSE;
+      $return = 0;
     }
 
     return $return;
@@ -156,17 +147,16 @@ class AwsSqsQueue implements ReliableQueueInterface {
    *  http://docs.aws.amazon.com/aws-sdk-php-2/guide/latest/service-sqs.html#receiving-messages.
    *
    * @param int $lease_time
-   *   Drupal's "lease time" is the same as AWS's "Visibility Timeout". It's the
-   *   amount of time for which an item is being claimed. If a user passes in a
-   *   value for $lease_time here, override the default claimTimeout.
+   *   (optional) How long the processing is expected to take in seconds.
+   *   0 by default.
+   * @param bool $unserialize
+   *   (bool) Whether to un-serialize the data before reading, true by default.
    *
    * @return bool|object
    *   On success we return an item object. If the queue is unable to claim an
-   *   item it returns false. This implies a best effort to retrieve an item
-   *   and either the queue is empty or there is some other non-recoverable
-   *   problem.
+   *   item it returns false.
    */
-  public function claimItem($lease_time = 0) {
+  public function claimItem($lease_time = 0, $unserialize = TRUE) {
     // This is important to support blocking calls to the queue system.
     $waitTimeSeconds = $this->getWaitTimeSeconds();
     $claimTimeout = ($lease_time) ? $lease_time : $this->getClaimTimeout();
@@ -180,10 +170,9 @@ class AwsSqsQueue implements ReliableQueueInterface {
       $waitTimeSeconds = $claimTimeout;
     }
 
+    // @todo Add error handling, in case service becomes unavailable.
     // Fetch the queue item.
-    // @todo See usage of $lease_time. Should we use lease_time or other timeout below?
-    // $message = $this->manager->receiveMessage($this->queue,$lease_time,true);
-    // Retrieve item from AWS. See documentation about method and response here:
+    /** @var \Guzzle\Service\Resource\Model $response */
     $response = $this->client->receiveMessage([
       'QueueUrl' => $this->queueUrl,
       'MaxNumberOfMessages' => 1,
@@ -191,12 +180,25 @@ class AwsSqsQueue implements ReliableQueueInterface {
       'WaitTimeSeconds' => $waitTimeSeconds,
     ]);
 
+    // If the response does not contain 'Messages', return false.
+    $messages = $response->get('Messages');
+    if (!$messages) {
+      return FALSE;
+    }
+
+    $message = reset($messages);
+
+    // If the item id is not set, return false.
+    if (empty($message['MessageId'])) {
+      return FALSE;
+    }
+
     // @todo Add error handling, in case service becomes unavailable.
     $item = new \stdClass();
-    $messageBody = $response->toArray()['Messages']['0'];
-    $item->data = $messageBody['Body'];
-    $item->item_id = $messageBody['ReceiptHandle'];
-    if (!empty($item->item_id)) {
+    $item->data = $unserialize ? $this->unserialize($message['Body']) : $message['Body'];
+    $item->reciept_handle = $message['ReceiptHandle'];
+    $item->item_id = $message['MessageId'];
+    if (!empty($item->reciept_handle)) {
       return $item;
     }
     return FALSE;
@@ -224,7 +226,7 @@ class AwsSqsQueue implements ReliableQueueInterface {
   public function releaseItem($item) {
     $result = $this->client->changeMessageVisibility([
       'QueueUrl' => $this->queueUrl,
-      'ReceiptHandle' => $item->item_id,
+      'ReceiptHandle' => $item->reciept_handle,
       'VisibilityTimeout' => 0,
     ]);
 
@@ -252,7 +254,7 @@ class AwsSqsQueue implements ReliableQueueInterface {
 
     $this->client->deleteMessage([
       'QueueUrl' => $this->queueUrl,
-      'ReceiptHandle' => $item->item_id,
+      'ReceiptHandle' => $item->reciept_handle,
     ]);
   }
 
@@ -309,7 +311,7 @@ class AwsSqsQueue implements ReliableQueueInterface {
    * @return string
    *   Return serialized string.
    *
-   * @todo: Depend on the Drupal serialization module for this.
+   * @todo: Update this code with Drupal serialize.
    */
   protected static function serialize(array $data) {
     return serialize($data);
@@ -330,7 +332,7 @@ class AwsSqsQueue implements ReliableQueueInterface {
    * @return mixed
    *   Return un-serialize data.
    *
-   * @todo: Depend on the Drupal serialization module for this.
+   * @todo: Update this code with Drupal serialize.
    */
   protected static function unserialize($data) {
     return unserialize($data);

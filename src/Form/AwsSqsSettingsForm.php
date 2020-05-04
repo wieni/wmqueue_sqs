@@ -95,9 +95,9 @@ class AwsSqsSettingsForm extends ConfigFormBase {
     $form['credentials'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('AWS credentials'),
-      '#description' => $this->t('Follow the instructions to set up your AWS credentials !here.',
+      '#description' => $this->t('Follow the instructions to set up your AWS credentials @here.',
               [
-                '!here' => $this->linkGenerator->generate($this->t('here'), $aws_credentials_url),
+                '@here' => $this->linkGenerator->generate($this->t('here'), $aws_credentials_url),
               ]),
     ];
     $form['credentials']['aws_sqs_aws_key'] = [
@@ -117,7 +117,7 @@ class AwsSqsSettingsForm extends ConfigFormBase {
     $long_polling_url = Url::fromUri('http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html#sqs-long-polling-query-api');
     $seconds = range(0, 20);
     $t_args = [
-      '!more' => $this->linkGenerator->generate($this->t('Read more about long polling here.'), $long_polling_url),
+      '@more' => $this->linkGenerator->generate($this->t('Read more about long polling here.'), $long_polling_url),
     ];
     $form['aws_sqs_waittimeseconds'] = [
       '#type' => 'select',
@@ -131,11 +131,11 @@ class AwsSqsSettingsForm extends ConfigFormBase {
         data to arrive are cheaper than polling SQS constantly to check for data. Long polling can also consume more
         resources on your server (think about the difference between running a task every minute that takes a second
         to complete versus running a task every minute that stays connected for up to 20 seconds every time waiting for
-        jobs to come in). !more", $t_args),
+        jobs to come in). @more", $t_args),
     ];
     $visibility_timeout_url = Url::fromUri('http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/AboutVT.html');
     $t_args = [
-      '!more' => $this->linkGenerator->generate($this->t('Read more about visibility timeouts here.'), $visibility_timeout_url),
+      '@more' => $this->linkGenerator->generate($this->t('Read more about visibility timeouts here.'), $visibility_timeout_url),
     ];
     $form['aws_sqs_claimtimeout'] = [
       '#type' => 'textfield',
@@ -146,7 +146,7 @@ class AwsSqsSettingsForm extends ConfigFormBase {
               "When an item is claimed from the queue by a worker, how long should the item be hidden from
         other workers (seconds)? Note: If the item is not deleted before the end of this time, it will become visible
         to other workers and available to be claimed again. Note also: 12 hours (43,200 seconds) is the maximum amount
-        of time for which an item can be claimed. !more", $t_args),
+        of time for which an item can be claimed. @more", $t_args),
     ];
 
     $form['aws_sqs_region'] = [
@@ -155,6 +155,7 @@ class AwsSqsSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('aws_sqs_region'),
       '#options' => [
         'us-east-1' => $this->t('us-east-1'),
+        'us-east-2' => $this->t('us-east-2'),
         'us-west-1' => $this->t('us-west-1'),
         'us-west-2' => $this->t('us-west-2'),
         'eu-west-1' => $this->t('eu-west-1'),
@@ -180,7 +181,8 @@ class AwsSqsSettingsForm extends ConfigFormBase {
 
     $form['queue_default_class'] = [
       '#title' => $this->t('Default Queue'),
-      '#markup' => $this->t("The default queue class is <strong>!default_queue</strong>.", ['!default_queue' => $default_queue]),
+      '#markup' => $this
+        ->t("The default queue class is <strong>@default_queue</strong>. Add <code>\$settings['queue_default'] = 'aws_sqs.queue_factory'</code> in settings.php to replace AWS SQS as default queue for Drupal system.", ['@default_queue' => $default_queue]),
     ];
 
     return parent::buildForm($form, $form_state);
@@ -200,6 +202,8 @@ class AwsSqsSettingsForm extends ConfigFormBase {
     $config->set('aws_sqs_claimtimeout', $form_state->getValue('aws_sqs_claimtimeout'))
       ->save();
     $config->set('aws_sqs_region', $form_state->getValue('aws_sqs_region'))
+      ->save();
+    $config->set('aws_sqs_version', $form_state->getValue('version'))
       ->save();
 
     $config->save();

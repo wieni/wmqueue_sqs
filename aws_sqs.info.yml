@@ -1,4 +1,4 @@
-name: Amazon SQS Queue Interface
+name: Amazon Simple Queue System
 description: Defines a Queue Interface for Amazon SQS
 package: Queues
 core: 8.x
