@@ -2,10 +2,11 @@
 
 namespace Drupal\aws_sqs;
 
-use Aws\AwsClientInterface;
+use Aws\Sqs\SqsClient;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Queue\ReliableQueueInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Symfony\Component\Serializer\Serializer;
 
 /**
  * Amazon queue.
@@ -23,7 +24,7 @@ class AwsSqsQueue implements ReliableQueueInterface {
   /**
    * SqsClient provided by AWS as interface to SQS.
    *
-   * @var \Aws\AwsClientInterface
+   * @var \Aws\Sqs\SqsClient
    */
   protected $client;
 
@@ -56,16 +57,23 @@ class AwsSqsQueue implements ReliableQueueInterface {
   protected $logger;
 
   /**
+   * Serializer service.
+   *
+   * @var \Symfony\Component\Serializer\Serializer
+   */
+  protected $serializer;
+
+  /**
    * AwsSqsQueue constructor.
    *
    * @param string $name
    *   Queue name.
-   * @param \Aws\AwsClientInterface $client
+   * @param \Aws\Sqs\SqsClient $client
    *   AwsClientInterface.
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
    *   Logger service.
    */
-  public function __construct($name, AwsClientInterface $client, LoggerChannelInterface $logger) {
+  public function __construct($name, SqsClient $client, LoggerChannelInterface $logger) {
     $this->name = $name;
     $this->client = $client;
     $this->logger = $logger;
@@ -87,10 +95,8 @@ class AwsSqsQueue implements ReliableQueueInterface {
    * Invokes SqsClient::sendMessage().
    *  http://docs.aws.amazon.com/aws-sdk-php-2/latest/class-Aws.Sqs.SqsClient.html#_sendMessage
    *
-   * @param string $data
-   *   Caller should be sending serialized data. If an item retreived from the
-   *   queueis being re-submitted to the queue (if is_object($item)
-   *   && $item->data && item->item_id), only $item->data will be stored.
+   * @param array|string $data
+   *   Caller should be sending data in array.
    * @param bool $serialize
    *   (bool) Whether to serialize the data before sending, true by default.
    *
@@ -99,7 +105,6 @@ class AwsSqsQueue implements ReliableQueueInterface {
    */
   public function createItem($data, $serialize = TRUE) {
     // @todo Check if data size limit is 64kb (Validate, link to documentation).
-    /** @var \Guzzle\Service\Resource\Model $result */
     $result = $this->client->sendMessage([
       'QueueUrl' => $this->getQueueUrl(),
       'MessageBody' => $serialize ? $this->serialize($data) : $data,
@@ -172,7 +177,6 @@ class AwsSqsQueue implements ReliableQueueInterface {
 
     // @todo Add error handling, in case service becomes unavailable.
     // Fetch the queue item.
-    /** @var \Guzzle\Service\Resource\Model $response */
     $response = $this->client->receiveMessage([
       'QueueUrl' => $this->queueUrl,
       'MaxNumberOfMessages' => 1,
@@ -297,45 +301,33 @@ class AwsSqsQueue implements ReliableQueueInterface {
   }
 
   /**
-   * PHPs native serialize() isn't very portable.
-   *
-   * This extend this class and support other serialization formats.
-   *
-   * Something other than PHP can potentially process the data in the queue.
-   *
-   * As per discussion here: https://drupal.org/node/1956190).
+   * Serialize data before sending to AWS SQS.
    *
    * @param array $data
    *   Data to serialize.
+   * @param string $format
+   *   Format to use for serialization of data.
    *
    * @return string
    *   Return serialized string.
-   *
-   * @todo: Update this code with Drupal serialize.
    */
-  protected static function serialize(array $data) {
-    return serialize($data);
+  protected function serialize(array $data, $format = 'json') {
+    return $this->serializer->encode($data, $format);
   }
 
   /**
-   * PHPs native serialize() isn't very portable.
-   *
-   * This extend this class and support other serialization formats.
-   *
-   * Something other than PHP can potentially process the data in the queue.
-   *
-   * As per discussion here: https://drupal.org/node/1956190).
+   * Unserialize data before sending to AWS SQS.
    *
    * @param string $data
    *   Data to un-serialize.
+   * @param string $format
+   *   Format in which data should be unserialized.
    *
    * @return mixed
    *   Return un-serialize data.
-   *
-   * @todo: Update this code with Drupal serialize.
    */
-  protected static function unserialize($data) {
-    return unserialize($data);
+  protected function unserialize($data, $format = 'json') {
+    return $this->serializer->decode($data, $format);
   }
 
   /**
@@ -365,7 +357,7 @@ class AwsSqsQueue implements ReliableQueueInterface {
   /**
    * Get sqs client.
    *
-   * @return \Aws\AwsClientInterface
+   * @return \Aws\Sqs\SqsClient
    *   AwsClientInterface client object.
    */
   public function getClient() {
@@ -375,10 +367,10 @@ class AwsSqsQueue implements ReliableQueueInterface {
   /**
    * Set client.
    *
-   * @param \Aws\AwsClientInterface $client
+   * @param \Aws\Sqs\SqsClient $client
    *   Sqs client.
    */
-  public function setClient(AwsClientInterface $client) {
+  public function setClient(SqsClient $client) {
     $this->client = $client;
   }
 
@@ -430,6 +422,16 @@ class AwsSqsQueue implements ReliableQueueInterface {
    */
   public function setWaitTimeSeconds($seconds) {
     $this->waitTimeSeconds = $seconds;
+  }
+
+  /**
+   * Set serializer.
+   *
+   * @param \Symfony\Component\Serializer\Serializer $serializer
+   *   Serializer service.
+   */
+  public function setSerializer(Serializer $serializer) {
+    $this->serializer = $serializer;
   }
 
 }

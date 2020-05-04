@@ -3,4 +3,6 @@ description: Defines a Queue Interface for Amazon SQS
 package: Queues
 core: 8.x
 type: module
+dependencies:
+  - drupal:serialization
 configure : aws_sqs.settings
