@@ -2,6 +2,7 @@
 
 namespace Drupal\aws_sqs;
 
+use Aws\Exception\AwsException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Aws\Sqs\SqsClient;
@@ -68,11 +69,23 @@ class AwsSqsQueueFactory {
       'version' => $this->config->get('aws_sqs_version'),
     ]);
 
-    $queue = new AwsSqsQueue($name, $client, $this->logger);
-    $queue->setSerializer($this->serializer);
-    $queue->setClaimTimeout($this->config->get('aws_sqs_claimtimeout'));
-    $queue->setWaitTimeSeconds($this->config->get('aws_sqs_waittimeseconds'));
-
+    try {
+      $queue = new AwsSqsQueue($name, $client, $this->logger);
+      $queue->setSerializer($this->serializer);
+      $queue->setClaimTimeout($this->config->get('aws_sqs_claimtimeout'));
+      $queue->setWaitTimeSeconds($this->config->get('aws_sqs_waittimeseconds'));
+    }
+    catch (AwsException $exception) {
+      if ($exception->getAwsErrorCode() == 'AWS.SimpleQueueService.QueueDeletedRecently') {
+        // Wait for 60 sec to create queue again.
+        // https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_CreateQueue.html
+        sleep(60);
+        $queue = $this->get($name);
+      }
+      else {
+        $this->logger->error($exception->getMessage());
+      }
+    }
     return $queue;
   }
 
