@@ -1,5 +1,3 @@
-# Ap Newsroom
-
 ## INTRODUCTION
 AWS simple queue services defines a Queue Interface for Amazon SQS
 
