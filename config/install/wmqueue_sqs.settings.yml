@@ -4,3 +4,4 @@ wmqueue_sqs_waittimeseconds: 1
 wmqueue_sqs_claimtimeout: 60
 wmqueue_sqs_region: 'us-east-1'
 wmqueue_sqs_version: 'latest'
+wmqueue_sqs_prefix: ''

@@ -191,6 +191,14 @@ class AwsSqsSettingsForm extends ConfigFormBase
             '#description' => $this->t("Amazon Web Services Version. 'latest' recommended"),
         ];
 
+        $form['prefix'] = [
+            '#type' => 'textfield',
+            '#title' => $this->t('Prefix'),
+            '#default_value' => $config->get('wmqueue_sqs_prefix'),
+            '#required' => true,
+            '#description' => $this->t("A prefix in case the SQS instance is being shared between environments. Eg 'development'"),
+        ];
+
         if (!$default_queue) {
             $default_queue = 'queue.database';
         }
@@ -219,6 +227,8 @@ class AwsSqsSettingsForm extends ConfigFormBase
         $config->set('wmqueue_sqs_region', $form_state->getValue('wmqueue_sqs_region'))
             ->save();
         $config->set('wmqueue_sqs_version', $form_state->getValue('version'))
+            ->save();
+        $config->set('wmqueue_sqs_prefix', $form_state->getValue('prefix'))
             ->save();
 
         $config->save();

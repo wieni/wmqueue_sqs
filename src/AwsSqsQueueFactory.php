@@ -75,7 +75,7 @@ class AwsSqsQueueFactory
         ]);
 
         try {
-            $queue = new AwsSqsQueue($name, $client, $this->logger);
+            $queue = new AwsSqsQueue($name, $client, $this->logger, $this->config->get('wmqueue_sqs_prefix'));
             $queue->setSerializer($this->serializer);
             $queue->setClaimTimeout($this->config->get('wmqueue_sqs_claimtimeout'));
             $queue->setWaitTimeSeconds($this->config->get('wmqueue_sqs_waittimeseconds'));

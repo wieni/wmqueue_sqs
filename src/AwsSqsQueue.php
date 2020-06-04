@@ -3,6 +3,7 @@
 namespace Drupal\wmqueue_sqs;
 
 use Aws\Sqs\SqsClient;
+use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Queue\ReliableQueueInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -44,6 +45,13 @@ class AwsSqsQueue implements ReliableQueueInterface
     protected $queueUrl;
 
     /**
+     * Queue prefix
+     *
+     * @var string
+     */
+    protected $prefix;
+
+    /**
      * Wait time for queue.
      *
      * @var string
@@ -73,12 +81,14 @@ class AwsSqsQueue implements ReliableQueueInterface
      *   AwsClientInterface.
      * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
      *   Logger service.
+     * @param string|null $prefix
      */
-    public function __construct($name, SqsClient $client, LoggerChannelInterface $logger)
+    public function __construct($name, SqsClient $client, LoggerChannelInterface $logger, ?string $prefix)
     {
         $this->name = $name;
         $this->client = $client;
         $this->logger = $logger;
+        $this->prefix = $prefix ?: '';
 
         // Ensure the the queue exists and that we have a queue URL so that we
         // aren't checking for the queueUrl everywhere.
@@ -279,7 +289,18 @@ class AwsSqsQueue implements ReliableQueueInterface
      */
     public function createQueue()
     {
-        $result = $this->client->createQueue(['QueueName' => $this->name]);
+        if ($this->getQueueUrl()) {
+            return;
+        }
+        $name = $this->name;
+        if ($this->prefix) {
+            $name = $this->prefix . '_' . $name;
+        }
+
+        // SQS has a limit of 80 chars
+        $name = Unicode::truncate($name, 80);
+
+        $result = $this->client->createQueue(['QueueName' => $name]);
         $queueUrl = $result->get('QueueUrl');
         $this->setQueueUrl($queueUrl);
     }
