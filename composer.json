@@ -1,19 +1,23 @@
 {
-    "name": "drupal/aws_sqs",
+    "name": "wieni/wmqueue_sqs",
     "type": "drupal-module",
     "description": "Use the Amazon Simple Queue System.",
     "keywords": ["sqs", "amazon", "queue"],
-    "homepage": "https://www.drupal.org/project/aws_sqs",
     "license": "GPL-2.0+",
     "authors": [
         {
             "name": "Nick Veenhof",
             "email": "nick.veenhof@acquia.com",
             "homepage": "http://nickveenhof.be/"
+        },
+        {
+            "name": "Wieni",
+            "email": "info@wieni.be",
+            "homepage": "http://www.wieni.be"
         }
     ],
     "require": {
-        "php": ">=5.3.2",
+        "php": ">=7.3",
         "aws/aws-sdk-php": "3.*"
     }
 }
