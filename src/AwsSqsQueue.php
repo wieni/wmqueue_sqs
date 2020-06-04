@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aws_sqs;
+namespace Drupal\wmqueue_sqs;
 
 use Aws\Sqs\SqsClient;
 use Drupal\Core\Logger\LoggerChannelInterface;

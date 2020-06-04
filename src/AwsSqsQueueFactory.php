@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aws_sqs;
+namespace Drupal\wmqueue_sqs;
 
 use Aws\Exception\AwsException;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -45,8 +45,8 @@ class AwsSqsQueueFactory {
    *   Serializer service.
    */
   public function __construct(ConfigFactoryInterface $config_factory, LoggerChannelFactoryInterface $logger_factory, Serializer $serializer) {
-    $this->config = $config_factory->get('aws_sqs.settings');
-    $this->logger = $logger_factory->get('aws_sqs');
+    $this->config = $config_factory->get('wmqueue_sqs.settings');
+    $this->logger = $logger_factory->get('wmqueue_sqs');
     $this->serializer = $serializer;
   }
 
@@ -56,24 +56,24 @@ class AwsSqsQueueFactory {
    * @param string $name
    *   The name of the SQS queue to use.
    *
-   * @return \Drupal\aws_sqs\AwsSqsQueue
+   * @return \Drupal\wmqueue_sqs\AwsSqsQueue
    *   Return AwsSqsQueue service.
    */
   public function get($name) {
     $client = new SqsClient([
       'credentials' => [
-        'key'    => $this->config->get('aws_sqs_aws_key'),
-        'secret' => $this->config->get('aws_sqs_aws_secret'),
+        'key'    => $this->config->get('wmqueue_sqs_aws_key'),
+        'secret' => $this->config->get('wmqueue_sqs_aws_secret'),
       ],
-      'region' => $this->config->get('aws_sqs_region'),
-      'version' => $this->config->get('aws_sqs_version'),
+      'region' => $this->config->get('wmqueue_sqs_region'),
+      'version' => $this->config->get('wmqueue_sqs_version'),
     ]);
 
     try {
       $queue = new AwsSqsQueue($name, $client, $this->logger);
       $queue->setSerializer($this->serializer);
-      $queue->setClaimTimeout($this->config->get('aws_sqs_claimtimeout'));
-      $queue->setWaitTimeSeconds($this->config->get('aws_sqs_waittimeseconds'));
+      $queue->setClaimTimeout($this->config->get('wmqueue_sqs_claimtimeout'));
+      $queue->setWaitTimeSeconds($this->config->get('wmqueue_sqs_waittimeseconds'));
     }
     catch (AwsException $exception) {
       if ($exception->getAwsErrorCode() == 'AWS.SimpleQueueService.QueueDeletedRecently') {

@@ -1,6 +1,6 @@
-aws_sqs.settings:
+wmqueue_sqs.settings:
   title: 'Amazon Simple Queue System'
-  route_name: aws_sqs.settings
+  route_name: wmqueue_sqs.settings
   description: 'Amazon Simple Queue System configuration setting form.'
   parent: system.admin_config_services
   weight: 100

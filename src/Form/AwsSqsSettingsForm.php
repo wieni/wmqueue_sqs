@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aws_sqs\Form;
+namespace Drupal\wmqueue_sqs\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
@@ -74,14 +74,14 @@ class AwsSqsSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'aws_sqs_settings';
+    return 'wmqueue_sqs_settings';
   }
 
   /**
    * {@inheritdoc}
    */
   protected function getEditableConfigNames() {
-    return ['aws_sqs.settings'];
+    return ['wmqueue_sqs.settings'];
   }
 
   /**
@@ -89,7 +89,7 @@ class AwsSqsSettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $default_queue = $this->stateInterface->get('queue_default');
-    $config = $this->config('aws_sqs.settings');
+    $config = $this->config('wmqueue_sqs.settings');
 
     $aws_credentials_url = Url::fromUri('http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html');
     $form['credentials'] = [
@@ -100,17 +100,17 @@ class AwsSqsSettingsForm extends ConfigFormBase {
                 '@here' => $this->linkGenerator->generate($this->t('here'), $aws_credentials_url),
               ]),
     ];
-    $form['credentials']['aws_sqs_aws_key'] = [
+    $form['credentials']['wmqueue_sqs_aws_key'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Access Key ID'),
-      '#default_value' => $config->get('aws_sqs_aws_key'),
+      '#default_value' => $config->get('wmqueue_sqs_aws_key'),
       '#required' => TRUE,
       '#description' => $this->t('Amazon Web Services Key.'),
     ];
-    $form['credentials']['aws_sqs_aws_secret'] = [
+    $form['credentials']['wmqueue_sqs_aws_secret'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Secret Access Key'),
-      '#default_value' => $config->get('aws_sqs_aws_secret'),
+      '#default_value' => $config->get('wmqueue_sqs_aws_secret'),
       '#required' => TRUE,
       '#description' => $this->t('Amazon Web Services Secret Key.'),
     ];
@@ -119,10 +119,10 @@ class AwsSqsSettingsForm extends ConfigFormBase {
     $t_args = [
       '@more' => $this->linkGenerator->generate($this->t('Read more about long polling here.'), $long_polling_url),
     ];
-    $form['aws_sqs_waittimeseconds'] = [
+    $form['wmqueue_sqs_waittimeseconds'] = [
       '#type' => 'select',
       '#title' => $this->t('Wait Time'),
-      '#default_value' => $config->get('aws_sqs_waittimeseconds'),
+      '#default_value' => $config->get('wmqueue_sqs_waittimeseconds'),
       '#options' => $seconds,
       '#description' => $this->t(
               "How long do you want to stay connected to AWS waiting for a response (seconds)? If a queue
@@ -137,10 +137,10 @@ class AwsSqsSettingsForm extends ConfigFormBase {
     $t_args = [
       '@more' => $this->linkGenerator->generate($this->t('Read more about visibility timeouts here.'), $visibility_timeout_url),
     ];
-    $form['aws_sqs_claimtimeout'] = [
+    $form['wmqueue_sqs_claimtimeout'] = [
       '#type' => 'textfield',
       '#title' => $this->t("Claim Timeout / Visibility Timeout"),
-      '#default_value' => $config->get('aws_sqs_claimtimeout'),
+      '#default_value' => $config->get('wmqueue_sqs_claimtimeout'),
       '#size' => 15,
       '#description' => $this->t(
               "When an item is claimed from the queue by a worker, how long should the item be hidden from
@@ -149,10 +149,10 @@ class AwsSqsSettingsForm extends ConfigFormBase {
         of time for which an item can be claimed. @more", $t_args),
     ];
 
-    $form['aws_sqs_region'] = [
+    $form['wmqueue_sqs_region'] = [
       '#type' => 'select',
       '#title' => $this->t('AWS Queue Region'),
-      '#default_value' => $config->get('aws_sqs_region'),
+      '#default_value' => $config->get('wmqueue_sqs_region'),
       '#options' => [
         'us-east-1' => $this->t('US East (N. Virginia)'),
         'us-east-2' => $this->t('US East (Ohio)'),
@@ -189,7 +189,7 @@ class AwsSqsSettingsForm extends ConfigFormBase {
     $form['version'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Version'),
-      '#default_value' => $config->get('aws_sqs_version'),
+      '#default_value' => $config->get('wmqueue_sqs_version'),
       '#required' => TRUE,
       '#description' => $this->t("Amazon Web Services Version. 'latest' recommended"),
     ];
@@ -201,7 +201,7 @@ class AwsSqsSettingsForm extends ConfigFormBase {
     $form['queue_default_class'] = [
       '#title' => $this->t('Default Queue'),
       '#markup' => $this
-        ->t("The default queue class is <strong>@default_queue</strong>. Add <code>\$settings['queue_default'] = 'aws_sqs.queue_factory'</code> in settings.php to replace AWS SQS as default queue for Drupal system.", ['@default_queue' => $default_queue]),
+        ->t("The default queue class is <strong>@default_queue</strong>. Add <code>\$settings['queue_default'] = 'wmqueue_sqs.queue_factory'</code> in settings.php to replace AWS SQS as default queue for Drupal system.", ['@default_queue' => $default_queue]),
     ];
 
     return parent::buildForm($form, $form_state);
@@ -211,18 +211,18 @@ class AwsSqsSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $config = $this->config('aws_sqs.settings');
-    $config->set('aws_sqs_aws_key', $form_state->getValue('aws_sqs_aws_key'))
+    $config = $this->config('wmqueue_sqs.settings');
+    $config->set('wmqueue_sqs_aws_key', $form_state->getValue('wmqueue_sqs_aws_key'))
       ->save();
-    $config->set('aws_sqs_aws_secret', $form_state->getValue('aws_sqs_aws_secret'))
+    $config->set('wmqueue_sqs_aws_secret', $form_state->getValue('wmqueue_sqs_aws_secret'))
       ->save();
-    $config->set('aws_sqs_waittimeseconds', $form_state->getValue('aws_sqs_waittimeseconds'))
+    $config->set('wmqueue_sqs_waittimeseconds', $form_state->getValue('wmqueue_sqs_waittimeseconds'))
       ->save();
-    $config->set('aws_sqs_claimtimeout', $form_state->getValue('aws_sqs_claimtimeout'))
+    $config->set('wmqueue_sqs_claimtimeout', $form_state->getValue('wmqueue_sqs_claimtimeout'))
       ->save();
-    $config->set('aws_sqs_region', $form_state->getValue('aws_sqs_region'))
+    $config->set('wmqueue_sqs_region', $form_state->getValue('wmqueue_sqs_region'))
       ->save();
-    $config->set('aws_sqs_version', $form_state->getValue('version'))
+    $config->set('wmqueue_sqs_version', $form_state->getValue('version'))
       ->save();
 
     $config->save();

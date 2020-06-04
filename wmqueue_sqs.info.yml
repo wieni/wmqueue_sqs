@@ -6,4 +6,4 @@ core_version_requirement: ^8 || ^9
 type: module
 dependencies:
   - drupal:serialization
-configure : aws_sqs.settings
+configure : wmqueue_sqs.settings

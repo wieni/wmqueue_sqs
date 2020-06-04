@@ -52,4 +52,4 @@ $settings array to define which services are used for queues
     
     Example :- 
     Add following code in settings.php.
-    $settings['queue_default'] = 'aws_sqs.queue_factory'
+    $settings['queue_default'] = 'wmqueue_sqs.queue_factory'
