@@ -10,14 +10,15 @@ use Drupal\Core\Routing\RouteMatchInterface;
 /**
  * Implements hook_help().
  */
-function wmqueue_sqs_help($route_name, RouteMatchInterface $route_match) {
-  $output = '';
-  switch ($route_name) {
-    // Main module help for the paragraphs module.
-    case 'help.page.wmqueue_sqs':
-      $output = t('Amazon Simple Queue System define easy interface for AWS SQS.');
+function wmqueue_sqs_help($route_name, RouteMatchInterface $route_match)
+{
+    $output = '';
+    switch ($route_name) {
+        // Main module help for the paragraphs module.
+        case 'help.page.wmqueue_sqs':
+            $output = t('Amazon Simple Queue System define easy interface for AWS SQS.');
 
-      break;
-  }
-  return $output;
+            break;
+    }
+    return $output;
 }

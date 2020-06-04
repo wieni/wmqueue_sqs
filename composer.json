@@ -2,7 +2,11 @@
     "name": "wieni/wmqueue_sqs",
     "type": "drupal-module",
     "description": "Use the Amazon Simple Queue System.",
-    "keywords": ["sqs", "amazon", "queue"],
+    "keywords": [
+        "sqs",
+        "amazon",
+        "queue"
+    ],
     "license": "GPL-2.0+",
     "authors": [
         {
@@ -19,5 +23,19 @@
     "require": {
         "php": ">=7.3",
         "aws/aws-sdk-php": "3.*"
+    },
+    "require-dev": {
+        "ergebnis/composer-normalize": "^2.0",
+        "friendsofphp/php-cs-fixer": "^2.13",
+        "wieni/wmcodestyle": "^1.0"
+    },
+    "scripts": {
+        "post-update-cmd": [
+            "wmcodestyle sync .editorconfig --quiet"
+        ],
+        "coding-standards": [
+            "@composer normalize",
+            "php-cs-fixer fix --config=.php_cs.php"
+        ]
     }
 }
