@@ -1,6 +1,8 @@
 ## INTRODUCTION
 AWS simple queue services defines a Queue Interface for Amazon SQS
 
+This is forked from https://git.drupalcode.org/project/aws_sqs/-/tree/e534becbce062ca741c34806393eb6805895619f/
+
 ## REQUIREMENTS
 Set up your Amazon account and sign up for SQS.
 
