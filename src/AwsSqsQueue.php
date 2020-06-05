@@ -297,6 +297,8 @@ class AwsSqsQueue implements ReliableQueueInterface
             $name = $this->prefix . '_' . $name;
         }
 
+        $name = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $name);
+
         // SQS has a limit of 80 chars
         $name = Unicode::truncate($name, 80);
 
