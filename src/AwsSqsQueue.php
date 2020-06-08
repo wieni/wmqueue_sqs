@@ -177,8 +177,8 @@ class AwsSqsQueue implements ReliableQueueInterface
     public function claimItem($lease_time = 0, $unserialize = true)
     {
         // This is important to support blocking calls to the queue system.
-        $waitTimeSeconds = $this->getWaitTimeSeconds();
-        $claimTimeout = ($lease_time) ? $lease_time : $this->getClaimTimeout();
+        $waitTimeSeconds = (int) $this->getWaitTimeSeconds();
+        $claimTimeout = (int) (($lease_time) ? $lease_time : $this->getClaimTimeout());
         // If our given claimTimeout is smaller than the allowed waiting seconds
         // set the waitTimeSeconds to this value. This is to avoid a long call when
         // the worker that called claimItem only has a finite amount of time to wait
