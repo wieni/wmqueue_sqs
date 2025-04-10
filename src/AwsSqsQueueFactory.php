@@ -6,12 +6,14 @@ use Aws\Exception\AwsException;
 use Aws\Sqs\SqsClient;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Queue\QueueFactoryInterface;
+use Drupal\Core\Queue\QueueInterface;
 use Symfony\Component\Serializer\Serializer;
 
 /**
  * Class AwsSqsQueueFactory.
  */
-class AwsSqsQueueFactory
+class AwsSqsQueueFactory implements QueueFactoryInterface
 {
     /**
      * Config factory service.
@@ -63,7 +65,7 @@ class AwsSqsQueueFactory
      * @return \Drupal\wmqueue_sqs\AwsSqsQueue
      *   Return AwsSqsQueue service.
      */
-    public function get($name)
+    public function get($name): QueueInterface
     {
         $client = new SqsClient([
             'credentials' => [
