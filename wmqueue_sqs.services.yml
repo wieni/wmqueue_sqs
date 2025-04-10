@@ -2,3 +2,4 @@ services:
   wmqueue_sqs.queue_factory:
     class: Drupal\wmqueue_sqs\AwsSqsQueueFactory
     arguments: ['@config.factory', '@logger.factory', '@serializer']
+    tags: ['queue_factory']
