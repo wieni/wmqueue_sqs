@@ -26,6 +26,9 @@ Enter your AWS credentials.
         - Go here: /admin/config/system/aws-queue
         - Enter your creds
 
+The key and secret are optional. When either is empty, the AWS SDK default credential
+provider chain is used (environment variables, shared config/SSO profile, ECS task role, ...).
+
 ## EXAMPLE CODE
     $example_queue = Drupal::service("queue.awssqs")->get("example_queue");
     
