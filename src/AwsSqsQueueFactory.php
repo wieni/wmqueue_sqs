@@ -67,14 +67,24 @@ class AwsSqsQueueFactory implements QueueFactoryInterface
      */
     public function get($name): QueueInterface
     {
-        $client = new SqsClient([
-            'credentials' => [
-                'key' => $this->config->get('wmqueue_sqs_aws_key'),
-                'secret' => $this->config->get('wmqueue_sqs_aws_secret'),
-            ],
+        $clientConfig = [
             'region' => $this->config->get('wmqueue_sqs_region'),
             'version' => $this->config->get('wmqueue_sqs_version'),
-        ]);
+        ];
+
+        // Only pass static credentials when both are configured, otherwise
+        // let the AWS SDK use its default credential provider chain
+        // (environment, shared config/SSO profile, ECS task role, ...).
+        $key = $this->config->get('wmqueue_sqs_aws_key');
+        $secret = $this->config->get('wmqueue_sqs_aws_secret');
+        if (!empty($key) && !empty($secret)) {
+            $clientConfig['credentials'] = [
+                'key' => $key,
+                'secret' => $secret,
+            ];
+        }
+
+        $client = new SqsClient($clientConfig);
 
         try {
             $queue = new AwsSqsQueue($name, $client, $this->logger, $this->config->get('wmqueue_sqs_prefix'));
